@@ -118,7 +118,7 @@ DHCP_Verify_Info () {
 
 DHCP_Info () {
 	Filter_Active_Interfaces
-	if [[ -z $option ]];then
+	if ! [[ -z $option ]];then
 	  :
   else
 	Menu_Active_Interfaces "${#Filtered_Active_Interfaces[@]}" "${Filtered_Active_Interfaces[@]}"
