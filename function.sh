@@ -13,9 +13,7 @@
 
 ####Functions####
 
-source NAMfunctions.sh
 
-line=$(printf '%40s\n' | tr ' ' -)
 echo $line
 
 Root_Check () {		## checks that the script runs as root
@@ -55,7 +53,31 @@ Distro_Check () {		## checking the environment the user is currenttly running on
 	fi
 }
 
-#DNS_Installation () {}
+Log_And_Variables () {
+	source NAMfunctions.sh
+
+	line=$(printf '%40s\n' | tr ' ' -)
+	dns_install_log=/var/log/Automated-Route/dns_install.log
+	dns_service=/var/log/Automated-Route/dns_service.log
+	log_path=/var/log/Automated-Route
+
+	if ! [[ -d $log_path ]]; then
+		mkdir $log_path
+	fi
+
+
+}
+
+DNS_Installation () {
+	printf "Installing DNS bind\n"
+	yum -y install bind bind-utils &>> $dns_install_log
+	if [[ $? -eq 0 ]]; then
+		DNS_Configuration
+	else
+		printf "Something went wrong during installation\nPlease check log file under:\n$dns_install_log\n"
+	fi
+
+}
 
 #DNS_Configuration () {}
 
