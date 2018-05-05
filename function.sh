@@ -15,6 +15,8 @@
 
 source NAMfunctions.sh
 
+line=$(printf '%40s\n' | tr ' ' -)
+echo $line
 
 Root_Check () {		## checks that the script runs as root
 	if [[ $EUID -eq 0 ]]; then
@@ -55,12 +57,17 @@ Distro_Check () {		## checking the environment the user is currenttly running on
 
 DHCP_Installation () {
 	echo "Now installing DHCP service"
-	yum install dhcp -y && echo "DHCP installed"
+	yum install dhcp -y && echo $line && echo "DHCP installed, moving on.."
+	echo " "
+	echo $line
 	DHCP_Network_configure
 }
 
+# Asks the user if they would like to configure the network. using NAM.
 DHCP_Network_configure () {
 	read -p "Do you want to configure the network? [Y,n]" DHCP_Network_configure_choise
+	echo " "
+	echo $line
 	if [[ $DHCP_Network_configure_choise == "" ]] || [[ $DHCP_Network_configure_choise == "y" ]] || [[ $DHCP_Network_configure_choise == "Y" ]]; then
 		Filter_Active_Interfaces
 		Menu_Active_Interfaces "${#Filtered_Active_Interfaces[@]}" "${Filtered_Active_Interfaces[@]}"
@@ -82,6 +89,8 @@ DHCP_Network_configure () {
 		DHCP_Network_configure
 	fi
 }
+
+# Asks the user if the details are correct, if they are move on, if not the run the user prompt again
 DHCP_Verify_Info_loop () {
   read -p "Is the information correct? [Y,n]" currect
   if [[ $currect == "" ]] || [[ $currect == "y" ]] || [[ $currect == "Y" ]]; then
@@ -97,6 +106,7 @@ DHCP_Verify_Info_loop () {
   fi
 }
 
+# Display the info entered, then starts the verify info loop.
 DHCP_Verify_Info () {
   echo $line
   echo $line
@@ -116,16 +126,21 @@ DHCP_Verify_Info () {
   DHCP_Verify_Info_loop
 }
 
+# Gathers info about network interfaces and IP
 DHCP_Info () {
-	Filter_Active_Interfaces
+	# If NAM ran before, dont filter interfaces, prevents duplicates
 	if ! [[ -z $option ]];then
 	  :
   else
-	Menu_Active_Interfaces "${#Filtered_Active_Interfaces[@]}" "${Filtered_Active_Interfaces[@]}"
+		Filter_Active_Interfaces
+
   fi
+	Menu_Active_Interfaces "${#Filtered_Active_Interfaces[@]}" "${Filtered_Active_Interfaces[@]}"
+
 	DHCP_User_Prompt
 }
 
+# Prompt user for the neccesserry info
 DHCP_User_Prompt () {
 	Interface_Info
   # The next 2 lines are used later to validate ipv4 addresses
@@ -216,7 +231,7 @@ DHCP_User_Prompt () {
   DHCP_Verify_Info
 }
 
-
+# Export the dhcpd templete using the info gathered.
 DHCP_Configuration () {
 	printf "
 	authoritative;
@@ -231,16 +246,15 @@ DHCP_Configuration () {
 
 	echo "DHCP configured, starting..."
 	systemctl enable dhcpd
-	systemctl start dhcpd && echo "DHCP running" || $(echo "DHCP failed, check the logs" && exit 1) 
+	systemctl start dhcpd && echo "DHCP running" || $(echo "DHCP failed, check the logs" && exit 1)
 
 }
 
+DNS_Installation () {
+}
 
-#DNS_Installation () {
-#}
+DNS_Configuration () {
 
-#DNS_Configuration () {
-
-#}
+}
 
 DHCP_Installation
