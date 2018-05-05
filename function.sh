@@ -57,7 +57,7 @@ Distro_Check () {		## checking the environment the user is currenttly running on
 
 #DNS_Installation () {}
 
-DNS_Configuration () {}
+#DNS_Configuration () {}
 
 DHCP_Installation () {
 	echo "Now installing DHCP service"
