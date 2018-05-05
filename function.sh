@@ -19,7 +19,7 @@ Log_And_Variables () {
 	dns_service_log=/var/log/Automated-Route/dns_service.log
 	dhcp_install_log=/var/log/Automated-Route/dhcp_install.log
 	dhcp_service_log=/var/log/Automated-Route/dhcp_servicel.log
-
+	dns_conf=/etc/named.conf
 
 	if [[ -d /var/log/Automated-Route ]]; then
 		:
@@ -71,7 +71,7 @@ Distro_Check () {		## checking the environment the user is currenttly running on
 }
 
 DHCP_Installtion () {		## install dhcp
-	yum install -y bind bind-utils -y
+
 }
 
 
@@ -81,6 +81,11 @@ DHCP_Configuration () {
 
 
 DNS_Installation () {
+	yum install -y bind bind-utils -y &> $dns_install_log		## install dns bind-utils
+	if [[ $? -eq 0 ]]; then		## checks exit status to see if the installation was successfull
+		sed -ie 's/listen-on port 53.*/listen-on port 53 { any; };/' $dns_conf &> $dns_service_log
+
+
 
 }
 
