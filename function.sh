@@ -14,7 +14,6 @@
 ####Functions####
 
 
-
 Log_And_Variables () {
 	dns_install_log=/var/log/Automated-Route/dns_install.log
 	dns_service_log=/var/log/Automated-Route/dns_service.log
@@ -29,6 +28,9 @@ Log_And_Variables () {
 	fi
 
 }
+
+source NAMfunctions.sh
+
 
 
 Root_Check () {		## checks that the script runs as root
