@@ -200,6 +200,7 @@ Profile_User_Prompt () {
     New_Profile=$Temp_Profile
   fi
 }
+
 Clone_Profile () {
   Active_Profile=$( nmcli --t -f NAME,UUID,TYPE,DEVICE con show --active |  grep $option |cut -d ":" -f 1 )
   New_Profile=$(echo $Active_Profile"_static")
@@ -212,7 +213,7 @@ Clone_Profile () {
   sleep 1s
   echo "Cloning profile..."
   nmcli con clone "$Active_Profile" "$New_Profile"
-  nmcli con mod "$New_Profile" ipv4.method manual ipv4.addr "$New_Ip" ipv4.gateway "$New_Gateway" ipv4.dns "$New_DNS1 $New_DNS2"
+  nmcli con mod "$New_Profile" ipv4.method manual ip4 "$New_Ip" ipv4.gateway "$New_Gateway" ipv4.dns "$New_DNS1 $New_DNS2"
  }
 
 Activate_New_Profile () {
