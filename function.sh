@@ -218,14 +218,14 @@ DHCP_User_Prompt () {
 
 
 DHCP_Configuration () {
-	printf "authoritative;/n
-	subnet $Network netmask $New_Netmask {/n
-		range New_Ip_Range_Start New_Ip_Range_End;/n
-		option domain-name-servers $New_DNS1, $New_DNS2;/n
-		option routers $New_Gateway;/n
-		option broadcast-address $Network_Base.255;/n
-		default-lease-time 600;/n
-		max-lease-time 7200;/n
+	printf "authoritative;
+	subnet $Network netmask $New_Netmask {
+		range New_Ip_Range_Start New_Ip_Range_End;
+		option domain-name-servers $New_DNS1, $New_DNS2;
+		option routers $New_Gateway;
+		option broadcast-address $Network_Base.255;
+		default-lease-time 600;
+		max-lease-time 7200;
 	}"  > /etc/dhcp/dhcpd.conf.example
 }
 
