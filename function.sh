@@ -246,7 +246,7 @@ DHCP_Configuration () {
 
 	echo "DHCP configured, starting..."
 	systemctl enable dhcpd
-	systemctl start dhcpd && echo "DHCP running" || $(echo "DHCP failed, check the logs" && exit 1)
+	systemctl start dhcpd && echo "DHCP running" || $( echo "DHCP failed, check the logs" && exit 1 )
 
 }
 
@@ -254,7 +254,6 @@ DNS_Installation () {
 }
 
 DNS_Configuration () {
-
 }
 
 DHCP_Installation
