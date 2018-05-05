@@ -68,6 +68,10 @@ DHCP_Network_configure () {
 		User_Prompt
 		Clone_Profile
 		Activate_New_Profile
+		echo " "
+		echo $line
+		echo $line
+		DHCP_Info
 	elif [[ $DHCP_Network_configure_choise == "n" ]] || [[ $DHCP_Network_configure_choise == "N" ]]; then
 		echo " "
 		echo $line
@@ -229,4 +233,4 @@ DHCP_Configuration () {
 
 #}
 
-DHCP_Installation 
+DHCP_Installation
