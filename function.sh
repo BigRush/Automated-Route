@@ -13,7 +13,6 @@
 
 ####Functions####
 
-<<<<<<< HEAD
 
 Log_And_Variables () {
 	dns_install_log=/var/log/Automated-Route/dns_install.log
@@ -30,8 +29,6 @@ Log_And_Variables () {
 
 }
 
-=======
->>>>>>> a10df73ab25811b20ac91bc5af8d5f554c77022c
 source NAMfunctions.sh
 
 
@@ -72,15 +69,10 @@ Distro_Check () {		## checking the environment the user is currenttly running on
 	fi
 }
 
-<<<<<<< HEAD
-DHCP_Installtion () {		## install dhcp
-=======
 DHCP_Installation () {
 	echo "Now installing DHCP service"
 	yum install dhcp -y && echo "DHCP installed"
 
-
->>>>>>> a10df73ab25811b20ac91bc5af8d5f554c77022c
 
 }
 
