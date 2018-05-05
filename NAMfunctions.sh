@@ -213,7 +213,7 @@ Clone_Profile () {
   sleep 1s
   echo "Cloning profile..."
   nmcli con clone "$Active_Profile" "$New_Profile"
-  nmcli con mod "$New_Profile" ipv4.method manual ip4 "$New_Ip" ipv4.gateway "$New_Gateway" ipv4.dns "$New_DNS1 $New_DNS2"
+  nmcli con mod "$New_Profile" ipv4.method manual ip4 "$New_Ip/$New_Netmask" ipv4.gateway "$New_Gateway" ipv4.dns "$New_DNS1 $New_DNS2"
  }
 
 Activate_New_Profile () {
