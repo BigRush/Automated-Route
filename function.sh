@@ -227,7 +227,7 @@ DHCP_Configuration () {
 		option broadcast-address $Network_Base.255;
 		default-lease-time 600;
 		max-lease-time 7200;
-	}"  > /etc/dhcp/dhcpd.conf.example
+	}"  > /etc/dhcp/dhcpd.conf
 }
 
 
