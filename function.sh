@@ -13,6 +13,9 @@
 
 ####Functions####
 
+source NAMfunctions.sh
+
+
 Root_Check () {		## checks that the script runs as root
 	if [[ $EUID -eq 0 ]]; then
 		:
