@@ -228,6 +228,11 @@ DHCP_Configuration () {
 		default-lease-time 600;
 		max-lease-time 7200;
 	}"  > /etc/dhcp/dhcpd.conf
+
+	echo "DHCP configured, starting..."
+	systemctl enable dhcpd
+	systemctl start dhcpd && echo "DHCP running" || $(echo "DHCP failed, check the logs" && exit 1) 
+
 }
 
 
