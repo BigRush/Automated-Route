@@ -55,6 +55,12 @@ Distro_Check () {		## checking the environment the user is currenttly running on
 	fi
 }
 
+DNS_Installation () {
+}
+
+DNS_Configuration () {
+}
+
 DHCP_Installation () {
 	echo "Now installing DHCP service"
 	yum install dhcp -y && echo $line && echo "DHCP installed, moving on.."
@@ -247,13 +253,8 @@ DHCP_Configuration () {
 	echo "DHCP configured, starting..."
 	systemctl enable dhcpd
 	systemctl start dhcpd && echo "DHCP running" || $( echo "DHCP failed, check the logs" && exit 1 )
-
 }
 
-DNS_Installation () {
-}
 
-DNS_Configuration () {
-}
 
 DHCP_Installation
