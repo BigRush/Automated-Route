@@ -219,10 +219,3 @@ Activate_New_Profile () {
   nmcli con down $Active_Profile && nmcli con up $New_Profile
   echo "Profile $New_Profile activated"
 }
-
-Filter_Active_Interfaces
-Menu_Active_Interfaces "${#Filtered_Active_Interfaces[@]}" "${Filtered_Active_Interfaces[@]}"
-Interface_Info
-User_Prompt
-Clone_Profile
-Activate_New_Profile

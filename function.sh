@@ -13,22 +13,6 @@
 
 ####Functions####
 
-
-Log_And_Variables () {
-	dns_install_log=/var/log/Automated-Route/dns_install.log
-	dns_service_log=/var/log/Automated-Route/dns_service.log
-	dhcp_install_log=/var/log/Automated-Route/dhcp_install.log
-	dhcp_service_log=/var/log/Automated-Route/dhcp_servicel.log
-	dns_conf=/etc/named.conf
-
-	if [[ -d /var/log/Automated-Route ]]; then
-		:
-	else
-		mkdir -p /var/log/Automated-Route
-	fi
-
-}
-
 source NAMfunctions.sh
 
 
@@ -72,46 +56,133 @@ Distro_Check () {		## checking the environment the user is currenttly running on
 DHCP_Installation () {
 	echo "Now installing DHCP service"
 	yum install dhcp -y && echo "DHCP installed"
+	DHCP_Network_configure
+}
 
+DHCP_Network_configure () {
+	read -p "Do you want to configure the network? [Y,n]" DHCP_Network_configure_choise
+	if [[ $DHCP_Network_configure_choise == "" ]] || [[ $DHCP_Network_configure_choise == "y" ]] || [[ $DHCP_Network_configure_choise == "Y" ]]; then
+		Filter_Active_Interfaces
+		Menu_Active_Interfaces "${#Filtered_Active_Interfaces[@]}" "${Filtered_Active_Interfaces[@]}"
+		Interface_Info
+		User_Prompt
+		Clone_Profile
+		Activate_New_Profile
+	elif [[ $DHCP_Network_configure_choise == "n" ]] || [[ $DHCP_Network_configure_choise == "N" ]]; then
+		echo " "
+		echo $line
+		echo $line
+		DHCP_Info
+	else
+		echo "Invalid input, try again"
+		DHCP_Network_configure
+	fi
+}
+DHCP_Verify_Info_loop () {
+  read -p "Is the information correct? [Y,n]" currect
+  if [[ $currect == "" ]] || [[ $currect == "y" ]] || [[ $currect == "Y" ]]; then
+    DHCP_Configuration
+  elif [[ $currect == "n" ]] || [[ $currect == "N" ]]; then
+    echo " "
+    echo $line
+    echo $line
+    DHCP_User_Prompt
+  else
+    echo "Invalid input, try again"
+    DHCP_Verify_Info_loop
+  fi
+}
 
+DHCP_Verify_Info () {
+  echo $line
+  echo $line
+  echo "Start of IP range : $New_Ip_Range_Start"
+  echo " "
+	echo "End of IP range : $New_Ip_Range_End"
+  echo " "
+	echo "Netmask : $New_Netmask"
+  echo " "
+	echo "Gateway: $New_Gateway"
+  echo " "
+  echo "Primary DNS : $New_DNS1"
+  echo " "
+  echo "Secondary DNS : $New_DNS2"
+  echo " "
+  echo " "
+  DHCP_Verify_Info_loop
+}
+
+DHCP_Info () {
+	Filter_Active_Interfaces
+	Menu_Active_Interfaces "${#Filtered_Active_Interfaces[@]}" "${Filtered_Active_Interfaces[@]}"
+	DHCP_User_Prompt
 }
 
 DHCP_User_Prompt () {
+	Interface_Info
   # The next 2 lines are used later to validate ipv4 addresses
   oct='([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])'
   ip4="^$oct\\.$oct\\.$oct\\.$oct$"
   # these set the default DNS, using google. yes Alex i love being spied on.
   DNS1="8.8.8.8"
   DNS2="8.8.4.4"
-	Network=$( echo $New_Ip | cut -d "." -f-1,2,3-s )
+	Network_Base=$( echo $Ip | cut -d "." -f1,2,3 )
+	Network=$( echo $Network_Base".0")
+	Ip_Range_Start=$( echo $Network_Base".20" )
+	Ip_Range_End=$( echo $Network_Base".200" )
   echo "Please enter the information to be set."
   echo "If a field is left blank, the current setting will be used"
   sleep 1
   echo " "
-  read -p "Enter the start of IP range  : " New_Ip_Range_Start
-  if [[ $New_Ip == "" ]]; then
-    New_Ip=$Ip
+  read -p "Enter the start of IP range  [$Ip_Range_Start]: " New_Ip_Range_Start
+  if [[ $New_Ip_Range_Start == "" ]]; then
+    New_Ip_Range_Start=$Ip_Range_Start
   else
-    until [[  $New_Ip == "" ]] || [[  "$New_Ip" =~ $ip4 ]]; do
-      read -p "Not a valid IP address. Re-enter [$Ip]  : " New_Ip
+    until [[  $New_Ip_Range_Start == "" ]] || [[  "$New_Ip_Range_Start" =~ $ip4 ]]; do
+      read -p "Not a valid IP address. Re-enter [$Ip_Range_Start]  : " New_Ip_Range_Start
     done
-    if [[ $New_Ip == "" ]]; then
-      New_Ip=$Ip
+    if [[ $New_Ip_Range_Start == "" ]]; then
+      New_Ip_Range_Start=$Ip_Range_Start
     fi
   fi
-	read -p "Enter desired IP address [$Ip] : " New_Ip
-  if [[ $New_Ip == "" ]]; then
-    New_Ip=$Ip
+	echo $line
+	read -p "Enter the end of IP range  [$Ip_Range_End]: " New_Ip_Range_End
+  if [[ $New_Ip_Range_End == "" ]]; then
+    New_Ip_Range_End=$Ip_Range_End
   else
-    until [[  $New_Ip == "" ]] || [[  "$New_Ip" =~ $ip4 ]]; do
-      read -p "Not a valid IP address. Re-enter [$Ip]  : " New_Ip
+    until [[  $New_Ip_Range_End == "" ]] || [[  "$New_Ip_Range_End" =~ $ip4 ]]; do
+      read -p "Not a valid IP address. Re-enter [$Ip_Range_End]  : " New_Ip_Range_End
     done
-    if [[ $New_Ip == "" ]]; then
-      New_Ip=$Ip
+    if [[ $New_Ip_Range_End == "" ]]; then
+      New_Ip_Range_End=$Ip_Range_End
     fi
   fi
   echo $line
-  read -p "Enter desired primary DNS [$DNS1] : " New_DNS1
+	read -p "Enter the netmask  [255.255.255.0]: " New_Netmask
+  if [[ $New_Netmask == "" ]]; then
+    New_Netmask="255.255.255.0"
+  else
+    until [[  $New_Netmask == "" ]] || [[  "$New_Netmask" =~ $ip4 ]]; do
+      read -p "Not a valid IP address. Re-enter [255.255.255.0]  : " New_Netmask
+    done
+    if [[ $New_Netmask == "" ]]; then
+      New_Netmask="255.255.255.0"
+    fi
+  fi
+  echo $line
+	read -p "Enter the gateway address [$Gateway]: " New_Gateway
+  if [[ $New_Gateway == "" ]]; then
+    New_Gateway=$Gateway
+  else
+    until [[  $New_Gateway == "" ]] || [[  "$New_Gateway" =~ $ip4 ]]; do
+      read -p "Not a valid IP address. Re-enter [255.255.255.0]  : " New_Gateway
+    done
+    if [[ $New_Gateway == "" ]]; then
+      New_Gateway=$Gateway
+    fi
+  fi
+  echo $line
+  read -p "Enter desired primary DNS for clients [$DNS1] : " New_DNS1
   if [[ $New_DNS1 == "" ]]; then
     New_DNS1=$DNS1
   else
@@ -123,7 +194,7 @@ DHCP_User_Prompt () {
     fi
   fi
   echo $line
-  read -p "Enter desired secondary DNS [$DNS2] : " New_DNS2
+  read -p "Enter desired secondary DNS for clients [$DNS2] : " New_DNS2
   if [[ $New_DNS2 == "" ]]; then
     New_DNS2=$DNS2
   else
@@ -134,33 +205,28 @@ DHCP_User_Prompt () {
       New_DNS1=$DNS2
     fi
   fi
-  Verify_Info
+  DHCP_Verify_Info
 }
+
+
 DHCP_Configuration () {
-
 	printf "authoritative;\
-\
-	subnet 192.168.15.0 netmask 255.255.255.0 {\
-		range 192.168.15.20 192.168.15.254;\
-		option domain-name-servers 8.8.8.8, 8.8.4.4;\
-		option routers 192.168.15.1;\
-		option broadcast-address 192.168.15.255;\
-		default-lease-time 600;\
-		max-lease-time 7200;\
-	}"  > /etc/dhcp/dhcpd.conf
-
+	subnet $Network netmask $New_Netmask {/n
+		range New_Ip_Range_Start New_Ip_Range_End;/n
+		option domain-name-servers $New_DNS1, $New_DNS2;/n
+		option routers $New_Gateway;/n
+		option broadcast-address $Network_Base.255;/n
+		default-lease-time 600;/n
+		max-lease-time 7200;/n
+	}"  > /etc/dhcp/dhcpd.conf.example
 }
 
 
-DNS_Installation () {
-	yum install -y bind bind-utils -y &> $dns_install_log		## install dns bind-utils
-	if [[ $? -eq 0 ]]; then		## checks exit status to see if the installation was successfull
-		sed -ie 's/listen-on port 53.*/listen-on port 53 { any; };/' $dns_conf &> $dns_service_log
+#DNS_Installation () {
+#}
 
+#DNS_Configuration () {
 
+#}
 
-}
-
-DNS_Configuration () {
-
-}
+DHCP_installation
