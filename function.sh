@@ -218,7 +218,7 @@ DHCP_User_Prompt () {
 
 
 DHCP_Configuration () {
-	printf "authoritative;\
+	printf "authoritative;/n
 	subnet $Network netmask $New_Netmask {/n
 		range New_Ip_Range_Start New_Ip_Range_End;/n
 		option domain-name-servers $New_DNS1, $New_DNS2;/n
