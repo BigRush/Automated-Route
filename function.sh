@@ -13,6 +13,7 @@
 
 ####Functions####
 
+<<<<<<< HEAD
 
 Log_And_Variables () {
 	dns_install_log=/var/log/Automated-Route/dns_install.log
@@ -29,8 +30,9 @@ Log_And_Variables () {
 
 }
 
+=======
+>>>>>>> a10df73ab25811b20ac91bc5af8d5f554c77022c
 source NAMfunctions.sh
-
 
 
 Root_Check () {		## checks that the script runs as root
@@ -70,12 +72,31 @@ Distro_Check () {		## checking the environment the user is currenttly running on
 	fi
 }
 
+<<<<<<< HEAD
 DHCP_Installtion () {		## install dhcp
+=======
+DHCP_Installation () {
+	echo "Now installing DHCP service"
+	yum install dhcp -y && echo "DHCP installed"
+
+
+>>>>>>> a10df73ab25811b20ac91bc5af8d5f554c77022c
 
 }
 
 
 DHCP_Configuration () {
+
+	"authoritative;
+
+	subnet 192.168.15.0 netmask 255.255.255.0 {
+		range 192.168.15.20 192.168.15.254;
+		option domain-name-servers 8.8.8.8, 8.8.4.4;
+		option routers 192.168.15.1;
+		option broadcast-address 192.168.15.255;
+		default-lease-time 600;
+		max-lease-time 7200;
+	}"
 
 }
 
