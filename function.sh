@@ -60,6 +60,9 @@ Log_And_Variables () {
 	dns_install_log=/var/log/Automated-Route/dns_install.log
 	dns_service=/var/log/Automated-Route/dns_service.log
 	log_path=/var/log/Automated-Route
+	dns_conf=/etc/named.conf
+	NetID=$(ip route show |awk '{print $1}' |sed -n '2p')
+
 
 	if ! [[ -d $log_path ]]; then
 		mkdir $log_path
@@ -79,7 +82,13 @@ DNS_Installation () {
 
 }
 
-#DNS_Configuration () {}
+DNS_Configuration () {
+	sed -ie 's/listen-on port 53.*/listen-on port 53 { any; };/' $dns_conf &>> $dns_service
+	sed -ie 's/listen-on-v6 port 53.*/listen-on-v6 { none; };/' $dns_conf &>> $dns_service
+	sed -ie "s/allow-query.*allow-query         { localhost; $NetID; };/" $dns_conf &>> $dns_service
+	sed -i "20iallow-transfer      { localhost; $NetID; };"
+
+}
 
 DHCP_Installation () {
 	echo "Now installing DHCP service"
