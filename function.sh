@@ -62,7 +62,70 @@ Log_And_Variables () {
 	log_path=/var/log/Automated-Route
 	dns_conf=/etc/named.conf
 	NetID=$(ip route show |awk '{print $1}' |sed -n '2p')
+	zone_path=/var/named
 
+
+	## checks if the net ID ends with 0 or its a subnetted network for the input
+	if [[ $(printf "$NetID\n" |cut -d '.' -f 4 |cut -c 1) -eq 0 ]]; then
+		input=$(printf "$NetID\n" |cut -d '.' -f 1,2,3,)
+	else
+		input=$(printf "$NetID\n" |cut -d '.' -f 1,2,3,4 |cut -d '/' -f 1)
+	fi
+
+	reverse_NetID=''		## this weill be our revresed net ID
+
+	## loop for reversing the net ID
+	for   (( i=0; i<${#input}; i++ )); do
+    	reverse_NetID="${input:${i}:1}$reverse_NetID"
+	done
+
+	read -r -d '' named_conf <<EOL
+
+zone "gruh.com" IN {
+	type master;
+	file "forward.gruh";
+	allow-update { none; };
+	};
+	zone "$reverse_NetID.in-addr.arpa" IN {
+	type master;
+	file "reverse.gruh";
+	allow-update { none; };
+	};
+EOL
+
+	read -r -d '' forward.gruh <<EOL
+$TTL 86400
+@	IN	SOA		dns0.gruh.local.	root.gruh.local. (
+    2011071001  ;Serial
+    3600        ;Refresh
+    1800        ;Retry
+    604800      ;Expire
+    86400       ;Minimum TTL
+)
+@       IN  NS          dns0.gruh.local.
+@       IN  A           192.168.1.101
+
+dns0	IN	A	192.168.1.101
+$HOSTNAME	IN	A	192.168.1.103
+www	IN	CNAME	$HOSTNAME
+EOL
+
+read -r -d '' reverse.gruh <<EOL
+$TTL 86400
+@	IN	SOA		dns0.gruh.local.	root.gruh.local. (
+2011071001  ;Serial
+3600        ;Refresh
+1800        ;Retry
+604800      ;Expire
+86400       ;Minimum TTL
+)
+       IN  NS          dns0.gruh.local.
+       IN  A           192.168.1.101
+
+dns0		IN		A		192.168.1.101
+$HOSTNAME		IN		A		192.168.1.103
+www		IN	CNAME		$HOSTNAME
+EOL
 
 	if ! [[ -d $log_path ]]; then
 		mkdir $log_path
@@ -83,10 +146,14 @@ DNS_Installation () {
 }
 
 DNS_Configuration () {
+	cat $dns_conf > $dns_conf.bck
+
 	sed -ie 's/listen-on port 53.*/listen-on port 53 { any; };/' $dns_conf &>> $dns_service
 	sed -ie 's/listen-on-v6 port 53.*/listen-on-v6 { none; };/' $dns_conf &>> $dns_service
 	sed -ie "s/allow-query.*allow-query         { localhost; $NetID; };/" $dns_conf &>> $dns_service
-	sed -i "20iallow-transfer      { localhost; $NetID; };"
+	sed -i "20iallow-transfer      { localhost; $NetID; };" $dns_conf &>> $dns_service
+	sed -i "52i $named_conf" $dns_conf &>> $dns_service
+
 
 }
 
