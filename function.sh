@@ -151,16 +151,16 @@ DNS_Configuration () {
 	sed -ie 's/listen-on-v6 port 53.*/listen-on-v6 { none; };/' $dns_conf &>> $dns_service_log
 	sed -ie "s/allow-query.*allow-query         { localhost; $NetID; };/" $dns_conf &>> $dns_service_log
 	printf "
-	zone \"$Domain\" IN {
-		type master;
-		file \"$Domain.f.zone\";
-		allow-update { none; };
-		};
-		zone \"$reverse_NetID.in-addr.arpa\" IN {
-		type master;
-		file \"$Domain.r.zone\";
-		allow-update { none; };
-		};
+zone \"$Domain\" IN {
+	type master;
+	file \"$Domain.f.zone\";
+	allow-update { none; };
+};
+zone \"$reverse_NetID.in-addr.arpa\" IN {
+	type master;
+	file \"$Domain.r.zone\";
+	allow-update { none; };
+};
 	" >> $dns_conf
 
 
@@ -199,6 +199,7 @@ dns0		IN		A		$Ip
 	systemctl enable named &>> $dns_service_log
 	if [[ $? -ne 0 ]]; then
 		printf "Something went wrong while enabling the service.\nPlease check log under:\n$dns_service_log\n"
+		cat $dns_conf.bck > $dns_conf		## restore to default dns settings
 		exit 1
 	fi
 
@@ -208,6 +209,7 @@ dns0		IN		A		$Ip
 		Main_Menu
 	else
 		printf "Something went wrong while restarting the service.\nPlease check log under:\n$dns_service_log\n"
+		cat $dns_conf.bck > $dns_conf		## restore to default dns settings
 		exit 1
 	fi
 
