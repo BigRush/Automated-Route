@@ -151,14 +151,14 @@ DNS_Configuration () {
 	sed -ie 's/listen-on-v6 port 53.*/listen-on-v6 { none; };/' $dns_conf &>> $dns_service_log
 	sed -ie "s/allow-query.*allow-query         { localhost; $NetID; };/" $dns_conf &>> $dns_service_log
 	printf "
-	zone "$Domain" IN {
+	zone \"$Domain\" IN {
 		type master;
-		file "$Domain.f.zone";
+		file \"$Domain.f.zone\";
 		allow-update { none; };
 		};
-		zone "$reverse_NetID.in-addr.arpa" IN {
+		zone \"$reverse_NetID.in-addr.arpa\" IN {
 		type master;
-		file "$Domain.r.zone";
+		file \"$Domain.r.zone\";
 		allow-update { none; };
 		};
 	" >> $dns_conf
