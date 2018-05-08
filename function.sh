@@ -51,6 +51,10 @@ Distro_Check () {		## checking the environment the user is currenttly running on
 	else
 		:
 	fi
+
+	if ! [[ $Distro_Val == "centos" ]]; then
+		printf "Sorry, this script does not support your system"
+	fi
 }
 
 Log_And_Variables () {
@@ -405,6 +409,11 @@ DHCP_Configuration () {
 
 
 Main_Menu () {
+	Log_And_Variables
+	Root_Check
+	Distro_Check
+
+
 	local PS3="Please choose the service you would like to install: "
 
 	Menu=(DHCP DNS)
