@@ -71,7 +71,7 @@ Log_And_Variables () {
 
 	## checks if the net ID ends with 0 or its a subnetted network for the input
 	if [[ $(printf "$NetID\n" |cut -d '.' -f 4 |cut -c 1) -eq 0 ]]; then
-		input=$(printf "$NetID\n" |cut -d '.' -f 1,2,3,)
+		input=$(printf "$NetID\n" |cut -d '.' -f 1,2,3)
 	else
 		input=$(printf "$NetID\n" |cut -d '.' -f 1,2,3,4 |cut -d '/' -f 1)
 	fi
@@ -426,6 +426,9 @@ Main_Menu () {
 			DNS)
 				DNS_Installation
 				;;
+
+			*)
+				printf "Invalid option, please try again\n"
 		esac
 	done
 }
