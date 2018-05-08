@@ -58,7 +58,7 @@ Log_And_Variables () {
 
 	line=$(printf '%40s\n' | tr ' ' -)
 	dns_install_log=/var/log/Automated-Route/dns_install.log
-	dns_service=/var/log/Automated-Route/dns_service.log
+	dns_service_log=/var/log/Automated-Route/dns_service.log
 	log_path=/var/log/Automated-Route
 	dns_conf=/etc/named.conf
 
@@ -80,41 +80,6 @@ Log_And_Variables () {
 	done
 
 
-
-
-
-	read -r -d '' forward.gruh <<EOL
-$TTL 86400
-@	IN	SOA		dns0.gruh.local.	root.gruh.local. (
-    2011071001  ;Serial
-    3600        ;Refresh
-    1800        ;Retry
-    604800      ;Expire
-    86400       ;Minimum TTL
-)
-@       IN  NS          dns0.gruh.local.
-@       IN  A           192.168.1.101
-
-dns0	IN	A	192.168.1.101
-
-EOL
-
-read -r -d '' reverse.gruh <<EOL
-$TTL 86400
-@	IN	SOA		dns0.gruh.local.	root.gruh.local. (
-2011071001  ;Serial
-3600        ;Refresh
-1800        ;Retry
-604800      ;Expire
-86400       ;Minimum TTL
-)
-       IN  NS          dns0.gruh.local.
-       IN  A           192.168.1.101
-
-dns0		IN		A		192.168.1.101
-
-EOL
-
 	if ! [[ -d $log_path ]]; then
 		mkdir -p $log_path
 	fi
@@ -133,29 +98,110 @@ DNS_Installation () {
 
 }
 
+
+IP_Check () {
+	int_menu=($(nmcli connection show |awk '{print $4}'|sed '1d') Quit)
+	echo ${#int_menu[@]}
+	echo ${int_menu[@]}
+	int_number=$(expr ${#int_menu[@]} - 1)
+	echo ${int_menu[@]:0:$int_number}
+	local PS3="Please choose your an interface to be set on the DNS: "
+	select opt in ${int_menu[*]}; do
+	case $opt in
+	        ${int_menu[@]:0:$int_number})
+	                                ip_addr=$(nmcli dev show $opt |awk '/IP4.ADDRESS/{print $2}')
+	                                echo $ip_addr
+	                                ;;
+	                                Quit)
+	                                printf "Exit - Have a nice day!\n"
+	                                exit 0
+	                                ;;
+	                                *)
+	                                printf "Invalid option\n"
+	                                ;;
+
+
+	esac
+	done
+
+}
+
 DNS_Configuration () {
 	cat $dns_conf > $dns_conf.bck
 
-	sed -ie 's/listen-on port 53.*/listen-on port 53 { any; };/' $dns_conf &>> $dns_service
-	sed -ie 's/listen-on-v6 port 53.*/listen-on-v6 { none; };/' $dns_conf &>> $dns_service
-	sed -ie "s/allow-query.*allow-query         { localhost; $NetID; };/" $dns_conf &>> $dns_service
-	sed -i "20iallow-transfer      { localhost; $NetID; };" $dns_conf &>> $dns_service
-	sed -i "52i $named_conf" $dns_conf &>> $dns_service
+	read -p "Please enter the domain name to be entered in the DNS configuring: " Domain
+
+	# If NAM ran before, dont filter interfaces, prevents duplicates
+	if ! [[ -z $option ]];then
+		:
+	else
+		Filter_Active_Interfaces
+	fi
+
+	Menu_Active_Interfaces "${#Filtered_Active_Interfaces[@]}" "${Filtered_Active_Interfaces[@]}"
+	Interface_Info
+
+	sed -ie 's/listen-on port 53.*/listen-on port 53 { any; };/' $dns_conf &>> $dns_service_log
+	sed -ie 's/listen-on-v6 port 53.*/listen-on-v6 { none; };/' $dns_conf &>> $dns_service_log
+	sed -ie "s/allow-query.*allow-query         { localhost; $NetID; };/" $dns_conf &>> $dns_service_log
+	printf "
+	zone "$Domain" IN {
+		type master;
+		file "$Domain.f.zone";
+		allow-update { none; };
+		};
+		zone "$reverse_NetID.in-addr.arpa" IN {
+		type master;
+		file "$Domain.r.zone";
+		allow-update { none; };
+		};
+	" >> $dns_conf
+
 
 
 
 	printf "
-	zone "$Domain" IN {
-		type master;
-		file "$Reverse_Domain";
-		allow-update { none; };
-		};
-		zone ""$reverse_NetID".in-addr.arpa" IN {
-		type master;
-		file "$Reverse_Domain";
-		allow-update { none; };
-		};
-	"
+$TTL 86400
+@	IN	SOA		$Domain.	root.$Domain. (
+		2011071001  ;Serial
+		3600        ;Refresh
+		1800        ;Retry
+		604800      ;Expire
+		86400       ;Minimum TTL
+)
+@       IN  NS          $Domain.
+@       IN  A           $Ip
+
+dns0	IN	A	$Ip
+	" > $zone_path/$Domain.f.zone
+
+	printf "
+$TTL 86400
+@	IN	SOA		dns0.gruh.local.	root.gruh.local. (
+2011071001  ;Serial
+3600        ;Refresh
+1800        ;Retry
+604800      ;Expire
+86400       ;Minimum TTL
+)
+			 IN  NS          dns0.gruh.local.
+			 IN  A           $Ip
+
+dns0		IN		A		$Ip
+	"	> $zone_path/$Domain.f.zone
+
+	systemctl enable named &>> $dns_service_log
+	if [[ $? -ne 0 ]]; then
+		printf "Something went wrong while enabling the service.\nPlease check log under:\n$dns_service_log\n"
+	fi
+
+	systemctl restart named &>> $dns_service_log
+	if [[ $? -eq 0 ]]; then
+		printf "DNS service is up and running!\n"
+	else
+		printf "Something went wrong while restarting the service.\nPlease check log under:\n$dns_service_log\n"
+	fi
+
 }
 
 DHCP_Installation () {
