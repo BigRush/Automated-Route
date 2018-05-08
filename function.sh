@@ -91,6 +91,7 @@ DNS_Installation () {
 	printf "Installing DNS bind\n"
 	yum -y install bind bind-utils &>> $dns_install_log
 	if [[ $? -eq 0 ]]; then
+
 		DNS_Configuration
 	else
 		printf "Something went wrong during installation\nPlease check log file under:\n$dns_install_log\n"
@@ -127,7 +128,8 @@ IP_Check () {
 }
 
 DNS_Configuration () {
-	cat $dns_conf > $dns_conf.bck
+	printf "Creating dns configuration back up file...\n"
+	cat $dns_conf > $dns_conf.bck		## Creating dns configuration back up file
 
 	read -p "Please enter the domain name to be entered in the DNS configuring: " Domain
 
@@ -193,13 +195,16 @@ dns0		IN		A		$Ip
 	systemctl enable named &>> $dns_service_log
 	if [[ $? -ne 0 ]]; then
 		printf "Something went wrong while enabling the service.\nPlease check log under:\n$dns_service_log\n"
+		exit 1
 	fi
 
 	systemctl restart named &>> $dns_service_log
 	if [[ $? -eq 0 ]]; then
 		printf "DNS service is up and running!\n"
+		Main_Menu
 	else
 		printf "Something went wrong while restarting the service.\nPlease check log under:\n$dns_service_log\n"
+		exit 1
 	fi
 
 }
@@ -399,5 +404,19 @@ DHCP_Configuration () {
 }
 
 
+Main_Menu () {
+	local PS3="Please choose the service you would like to install: "
 
-DHCP_Installation
+	Menu=(DHCP DNS)
+	select opt in ${Menu[@]}; do
+		case $opt in
+			DHCP)
+				DHCP_Installation
+				;;
+
+			DNS)
+				DNS_Installation
+				;;
+		esac
+	done
+}
