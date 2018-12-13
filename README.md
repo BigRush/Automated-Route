@@ -55,5 +55,5 @@ bash NAMfunctions.sh
 
 ## License
 
-This project is licensed under the GPLv3 License - see the [LICENSE](https://github.com/BigRush/IP-Show/blob/master/LICENSE) file for details
+This project is licensed under the GPLv3 License - see the [LICENSE](https://github.com/BigRush/Automated-Route/blob/master/LICENSE) file for details
 
